@@ -1,0 +1,9 @@
+{
+    "use_model": "gemma2:latest",
+    "model_list": [
+        "deepseek-r1:1.5b",
+        "gemma2:latest"
+    ],
+    "temperature": 1.44,
+    "top_p": 0.76
+}
