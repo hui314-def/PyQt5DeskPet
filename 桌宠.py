@@ -1,13 +1,14 @@
 import sys, time, subprocess, GPUtil, os, psutil, gc, tracemalloc, json
-from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QMenu, QSystemTrayIcon, QDialog, QCheckBox
+from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QMenu, QSystemTrayIcon
 from PyQt5.QtCore import Qt, QEvent, QTimer
 from PyQt5.QtGui import QCursor, QPixmap, QIcon
-from PyQt5.QtWidgets import QFormLayout, QSpinBox, QPushButton, QLabel, QComboBox
+from PyQt5.QtWidgets import QLabel
 # 自定义包导入
 from 动画模块 import Animation
 from 音频模块 import Sound
 from 定时模块 import Timer
 from 聊天模块 import ModelApi
+from 设置模块 import Setting
 
 def memory_usage():
     """返回当前进程内存使用量(MB)"""
@@ -505,81 +506,6 @@ class MyQtDeskPet(QWidget):
             del self.api
             gc.collect() # 强制垃圾回收
 
-class Setting(QDialog):
-    '''个性化设置'''
-    def __init__(self, main=None):
-        super().__init__()
-        self.main = main
-        self.setWindowTitle("个性化设置")
-        self.setModal(True)
-        self.setWindowFlags(self.windowFlags() | Qt.Tool | Qt.WindowStaysOnTopHint)
-        self.setup_ui()
-
-    def setup_ui(self):
-        layout = QFormLayout(self)
-        # 窗口大小设置
-        self.size_spin = QSpinBox()
-        self.size_spin.setRange(2, 10)
-        self.size_spin.setValue(int(self.main.width()/100))
-        layout.addRow("窗口大小：", self.size_spin)
-        # 窗口主题切换
-        self.combo_box = QComboBox()
-        self.combo_box.addItems(['橙色','绿色','蓝色'])
-        self.combo_box.setCurrentText(self.main.data['style'])
-        layout.addRow("主题颜色切换：", self.combo_box)
-        # 图片切换速度设置
-        self.interval_spin = QSpinBox()
-        self.interval_spin.setRange(50, 1000)
-        self.interval_spin.setSingleStep(50)
-        self.interval_spin.setValue(self.main.animation.interval)
-        layout.addRow("图片切换间隔(ms)：", self.interval_spin)
-        # 移动速度大小设置
-        self.speed_spin = QSpinBox()
-        self.speed_spin.setRange(2, 50)
-        self.speed_spin.setSingleStep(2)
-        self.speed_spin.setValue(self.main.dv)
-        layout.addRow("移动速度：", self.speed_spin)
-        # 闹钟提醒开关
-        self.alarm_checkbox = QCheckBox()
-        self.alarm_checkbox.setText('是否启用闹钟')
-        layout.addRow(self.alarm_checkbox)
-        # 语音提醒时间设置
-        self.voice_time_spin = QSpinBox()
-        self.voice_time_spin.setRange(1, 999)
-        self.voice_time_spin.setSingleStep(1)
-        self.voice_time_spin.setValue(int(self.main.timer.clock_timer.interval()/1000/60) if self.main.timer.clock_timer.isActive() else 1)
-        layout.addRow("闹钟提醒间隔(min)：", self.voice_time_spin)
-        # 声音开关
-        self.sound_checkbox = QCheckBox()
-        self.sound_checkbox.setText('是否关闭声音')
-        layout.addRow(self.sound_checkbox)
-        # 保存按钮
-        btn_save = QPushButton("保存设置")
-        btn_save.clicked.connect(self.save_settings)
-        layout.addRow(btn_save)
-
-    def save_settings(self):
-        '''应用设置到主窗口'''
-        if self.main.data['size'] != self.size_spin.value(): # 设置窗口大小
-            self.main.setFixedSize(self.size_spin.value()*100, int(self.size_spin.value()*4/3*100))
-            self.main.animation.w = self.main.width()-100
-            self.main.animation.h = self.main.height()-100
-            self.main.data['size'] = self.size_spin.value()
-        if self.main.data['style'] != self.combo_box.currentText(): # 设置窗口主题切换
-            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '预设参数', self.combo_box.currentText()+'.qss'),'r',encoding='utf-8') as f:
-                self.main.theme = f.read()
-            self.main.data['style'] = self.combo_box.currentText()
-        if self.main.data['interval'] != self.main.animation.interval: # 设置图片切换速度
-            self.main.animation.interval = self.interval_spin.value()
-            self.main.data['interval'] = self.main.animation.interval
-        if self.main.data['dv'] != self.main.dv: # 设置移动速度
-            self.main.dv = self.speed_spin.value()
-            self.main.data['dv'] = self.main.dv
-        if self.alarm_checkbox.isChecked(): # 设置语音提醒时间
-            self.main.timer.set_clock(self.voice_time_spin.value())
-        if self.main.sound.is_off != self.sound_checkbox.isChecked():
-            self.main.sound.is_off = self.sound_checkbox.isChecked()
-        self.accept()
 
 if __name__ == "__main__": # 启动桌宠！
     app = QApplication(sys.argv)
