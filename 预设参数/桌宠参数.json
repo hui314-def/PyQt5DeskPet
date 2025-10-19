@@ -1,5 +1,5 @@
 {
-    "interval": 200,
-    "dv": 20,
-    "size": 8
+    "interval": 150,
+    "dv": 10,
+    "size": 4
 }
