@@ -22,6 +22,7 @@ class TTSWorker(QThread):
 class Sound:
     def __init__(self):
         self.abspath = os.path.dirname(os.path.abspath(__file__))
+        os.makedirs(os.path.join(self.abspath, 'sound','历史音频合成'), exist_ok=True)
         self.player = QMediaPlayer() # 音乐实例化
         self.num = 0
         self.tts_worker = None

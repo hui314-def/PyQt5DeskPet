@@ -44,6 +44,7 @@ class ModelApi(QWidget):
     '''大模型api调用'''
     def __init__(self, main=None):
         super().__init__()
+        self.setAttribute(Qt.WA_QuitOnClose, False)
         self.main = main
         self.ui_init()
         self.sound = Sound()
@@ -85,35 +86,7 @@ class ModelApi(QWidget):
         layout.addWidget(self.set)
         self.setLayout(layout)
         # 设置橙色主题样式
-        self.setStyleSheet("""
-            QWidget {
-                background-color: #fff7e6;
-                font-family: 'Microsoft YaHei', Arial, sans-serif;
-                font-size: 20px;
-            }
-            QLineEdit {
-                border: 2px solid #ffa940;
-                border-radius: 8px;
-                padding: 6px;
-                background: #fffbe6;
-                color: #333;
-            }
-            QPushButton {
-                background-color: #ffa940;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 8px 18px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #fa8c16;
-            }
-            QPushButton:disabled {
-                background-color: #ffd591;
-                color: #fffbe6;
-            }
-        """)
+        self.setStyleSheet(self.main.theme)
 
     def keyPressEvent(self, a0):
         '''按回车键发送文本'''
@@ -170,12 +143,17 @@ class ModelApi(QWidget):
             self.save()
         if self.main:
             self.main.t = None  # 重置标志位
-        a0.ignore() # 忽略关闭事件，防止应用程序退出
-        self.hide() # 隐藏窗口而不是关闭
+        # a0.ignore() # 忽略关闭事件，防止应用程序退出
+        # self.hide() # 隐藏窗口而不是关闭
         self.data["messages"] = [self.data["messages"].pop(0)] # 重置历史对话
         # 保存最新参数配置文件
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '预设参数', '模型参数.json'),'w', encoding='utf-8') as f:
             json.dump(self.model, f, indent=4, ensure_ascii=False)
+        # 接受关闭事件
+        a0.accept()
+        # 通知主程序释放资源
+        if self.main:
+            self.main.on_chat_window_closed()
         
         
 class SettingsDialog(QDialog):

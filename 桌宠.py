@@ -2,7 +2,7 @@ import sys, time, subprocess, GPUtil, os, psutil, gc, tracemalloc, json
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QMenu, QSystemTrayIcon, QDialog, QCheckBox
 from PyQt5.QtCore import Qt, QEvent, QTimer
 from PyQt5.QtGui import QCursor, QPixmap, QIcon
-from PyQt5.QtWidgets import QFormLayout, QSpinBox, QPushButton, QLabel
+from PyQt5.QtWidgets import QFormLayout, QSpinBox, QPushButton, QLabel, QComboBox
 # 自定义包导入
 from 动画模块 import Animation
 from 音频模块 import Sound
@@ -26,6 +26,8 @@ class MyQtDeskPet(QWidget):
         self.is_move = False # 是否移动
         with open(os.path.join(self.abspath, '预设参数', '桌宠参数.json'), 'r', encoding='utf-8') as f:
             self.data = json.load(f)
+        with open(os.path.join(self.abspath, '预设参数', self.data['style']+'.qss'),'r',encoding='utf-8') as f:
+            self.theme = f.read()
         self.dv = self.data['dv'] # 初始化移动速度
         self.click_times = 0 # 点击次数
         self.ui_init() # 界面初始化
@@ -34,7 +36,6 @@ class MyQtDeskPet(QWidget):
         self.sound.say('随机声音/你好.mp3') # 初始语音播放
         self.timer = Timer(self) # 实例化定时器类
         self.dialog = Setting(self) # 实例化设置类
-        self.t = None # 聊天模式线程
         
     def ui_init(self):
         '''界面初始化'''
@@ -50,21 +51,7 @@ class MyQtDeskPet(QWidget):
         self.setLayout(layout)
         tray_icon = QSystemTrayIcon(QIcon(os.path.join(self.abspath, "images", "图标", "icon.png")), self) # 托盘图标设置
         self.tray = QMenu() # 托盘菜单
-        self.tray.setStyleSheet("""
-            QMenu {
-                background-color: #fffbe6;
-                border: 4px solid #ffb84d;
-                font-size: 20px;
-            }
-            QMenu::item {
-                padding: 6px 30px 6px 30px;
-                background: transparent;
-            }
-            QMenu::item:selected {
-                background-color: #ffe0b2;
-                color: #d35400;
-            }
-        """)
+        self.tray.setStyleSheet(self.theme) # 设置托盘菜单栏样式
         show_action = self.tray.addAction("显示桌宠")
         set_action = self.tray.addAction("个性化设置")
         quit_action = self.tray.addAction("退出程序")
@@ -135,11 +122,18 @@ class MyQtDeskPet(QWidget):
         bubble_width = max(150, min(0.6 * self.width(), 500))
         font_size = max(15, min(int(self.width() / 30), 40))
         reminder_bubble.setFixedWidth(int(bubble_width))
+        # 根据当前主题切换气泡配色（可根据需要在 data 中添加更多主题或自定义颜色）
+        theme_map = {
+            '橙色': ('rgba(255,250,230,200)', 'rgba(255,240,200,200)', '#FFA500'),
+            '绿色': ('rgba(230,255,240,200)', 'rgba(200,255,220,200)', '#28A745'),
+            '蓝色': ('rgba(232,244,255,200)', 'rgba(220,235,255,200)', '#007BFF'),
+        }
+        bg_start, bg_end, border_color = theme_map[self.data['style']]
         reminder_bubble.setStyleSheet(f"""
         QLabel {{
             background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
-            stop:0 rgba(255, 250, 230, 200), stop:1 rgba(255, 240, 200, 200));
-            border: 2px solid #FFA500;
+                stop:0 {bg_start}, stop:1 {bg_end});
+            border: 2px solid {border_color};
             border-radius: 15px;
             padding: 15px;
             font-size: {font_size}px;
@@ -189,21 +183,7 @@ class MyQtDeskPet(QWidget):
         dir = os.path.join(self.abspath, "images", "图标") # 菜单图标文件夹
         if self.timer.sleeping: # 睡觉状态下只显示唤醒、隐藏和退出选项
             menu = QMenu(self)
-            menu.setStyleSheet("""
-                QMenu {
-                    background-color: #fffbe6;
-                    border: 4px solid #ffb84d;
-                    font-size: 20px;
-                }
-                QMenu::item {
-                    padding: 6px 30px 6px 30px;
-                    background: transparent;
-                }
-                QMenu::item:selected {
-                    background-color: #ffe0b2;
-                    color: #d35400;
-                }
-            """)
+            menu.setStyleSheet(self.theme) # 设置菜单栏样式
             action_wake = menu.addAction("唤醒")
             action_wake.setIcon(QIcon(os.path.join(dir, "灯泡.png")))
             action_hide = menu.addAction("隐藏")
@@ -219,27 +199,7 @@ class MyQtDeskPet(QWidget):
                 self.hide()
         else:
             menu = QMenu(self)
-            # 设置菜单栏样式
-            menu.setStyleSheet("""
-                QMenu {
-                    background-color: #fffbe6;
-                    border: 5px solid #ffb84d;
-                    font-size: 20px;
-                }
-                QMenu::item {
-                    padding: 6px 30px 6px 30px;
-                    background: transparent;
-                }
-                QMenu::item:selected {
-                    background-color: #ffe0b2;
-                    color: #d35400;
-                }
-                QMenu::separator {
-                    height: 2px;
-                    background: #ffd699;
-                    margin: 4px 0;
-                }
-            """)
+            menu.setStyleSheet(self.theme) # 设置菜单栏样式
             action_menu = menu.addMenu("动作")
             action_menu.setIcon(QIcon(os.path.join(dir, "猫爪.png")))
             action1 = action_menu.addAction("动作 1")
@@ -278,7 +238,7 @@ class MyQtDeskPet(QWidget):
             action_about.setIcon(QIcon(os.path.join(dir, "问号.png")))
             action_exit = menu.addAction("退出")
             action_exit.setIcon(QIcon(os.path.join(dir, "退出.png")))
-            action_view = menu.addAction("内存使用量（开发者使用）")
+            action_view = menu.addAction("内存使用量")
 
             action = menu.exec_(a0.globalPos())
             #菜单事件绑定
@@ -318,16 +278,14 @@ class MyQtDeskPet(QWidget):
                 self.sound.rand_say('动作5')
                 self.animation.action5.start(self.animation.interval)
             if action == action_chat:
-                if self.t is None:
-                    self.chat()
-                    self.t = True
+                self.chat()
             if action == action_save:
                 os.startfile(os.path.join(self.abspath, "uploads"))
             if action == action_music:
                 self.sound.rand_music()
             if action == action_about:
                 self.sound.say('开发者.mp3')
-                subprocess.Popen(["notepad", os.path.join(self.abspath, "关于程序.txt")])
+                subprocess.Popen(["notepad", os.path.join(self.abspath, "README.md")])
             if action == action_hide:
                 self.sound.say('隐藏.mp3')
                 self.hide()
@@ -452,6 +410,10 @@ class MyQtDeskPet(QWidget):
         self.sound.rand_say('打开聊天')
         if hasattr(self, 'api'):
             self.api.show()
+            if self.api.isMinimized(): # 如果窗口最小化，则恢复正常
+                self.api.showNormal()
+            self.api.raise_() # 将窗口提到前台
+            self.api.activateWindow() # 激活窗口
         else:
             self.api = ModelApi(self)
             self.api.show()
@@ -520,9 +482,28 @@ class MyQtDeskPet(QWidget):
             self.sound.say('合理.mp3')
 
     def exit(self):
+        '''退出程序'''
         with open(os.path.join(self.abspath, '预设参数', '桌宠参数.json'),'w',encoding='utf-8') as f:
             json.dump(self.data, f, indent=4, ensure_ascii=False)
         QApplication.quit()
+
+    def on_chat_window_closed(self):
+        '''当聊天窗口关闭时释放资源'''
+        if hasattr(self, 'api'):
+            # 停止可能正在运行的线程
+            if hasattr(self.api, 'worker') and self.api.worker and self.api.worker.isRunning():
+                self.api.worker.terminate()
+                self.api.worker.wait(1000) # 等待1秒
+            try: # 断开所有信号连接
+                if hasattr(self.api, 'worker'):
+                    self.api.worker.finished.disconnect()
+                    self.api.worker.error.disconnect()
+            except:
+                pass
+            # 删除聊天窗口实例
+            self.api.deleteLater()
+            del self.api
+            gc.collect() # 强制垃圾回收
 
 class Setting(QDialog):
     '''个性化设置'''
@@ -541,6 +522,11 @@ class Setting(QDialog):
         self.size_spin.setRange(2, 10)
         self.size_spin.setValue(int(self.main.width()/100))
         layout.addRow("窗口大小：", self.size_spin)
+        # 窗口主题切换
+        self.combo_box = QComboBox()
+        self.combo_box.addItems(['橙色','绿色','蓝色'])
+        self.combo_box.setCurrentText(self.main.data['style'])
+        layout.addRow("主题颜色切换：", self.combo_box)
         # 图片切换速度设置
         self.interval_spin = QSpinBox()
         self.interval_spin.setRange(50, 1000)
@@ -574,21 +560,25 @@ class Setting(QDialog):
 
     def save_settings(self):
         '''应用设置到主窗口'''
-        # 设置窗口大小
-        self.main.setFixedSize(self.size_spin.value()*100, int(self.size_spin.value()*4/3*100))
-        self.main.animation.w = self.main.width()-100
-        self.main.animation.h = self.main.height()-100
-        self.main.data['size'] = self.size_spin.value()
-        # 设置图片切换速度
-        self.main.animation.interval = self.interval_spin.value()
-        self.main.data['interval'] = self.main.animation.interval
-        # 设置移动速度
-        self.main.dv = self.speed_spin.value()
-        self.main.data['dv'] = self.main.dv
-        # 设置语音提醒时间
-        if self.alarm_checkbox.isChecked():
+        if self.main.data['size'] != self.size_spin.value(): # 设置窗口大小
+            self.main.setFixedSize(self.size_spin.value()*100, int(self.size_spin.value()*4/3*100))
+            self.main.animation.w = self.main.width()-100
+            self.main.animation.h = self.main.height()-100
+            self.main.data['size'] = self.size_spin.value()
+        if self.main.data['style'] != self.combo_box.currentText(): # 设置窗口主题切换
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '预设参数', self.combo_box.currentText()+'.qss'),'r',encoding='utf-8') as f:
+                self.main.theme = f.read()
+            self.main.data['style'] = self.combo_box.currentText()
+        if self.main.data['interval'] != self.main.animation.interval: # 设置图片切换速度
+            self.main.animation.interval = self.interval_spin.value()
+            self.main.data['interval'] = self.main.animation.interval
+        if self.main.data['dv'] != self.main.dv: # 设置移动速度
+            self.main.dv = self.speed_spin.value()
+            self.main.data['dv'] = self.main.dv
+        if self.alarm_checkbox.isChecked(): # 设置语音提醒时间
             self.main.timer.set_clock(self.voice_time_spin.value())
-        self.main.sound.is_off = self.sound_checkbox.isChecked()
+        if self.main.sound.is_off != self.sound_checkbox.isChecked():
+            self.main.sound.is_off = self.sound_checkbox.isChecked()
         self.accept()
 
 if __name__ == "__main__": # 启动桌宠！
