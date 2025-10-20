@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QFormLayout, QSpinBox, QPushButton, QComboBox, QDia
                              QDialogButtonBox, QCheckBox, QHBoxLayout, QSlider, QLabel, QInputDialog)
 from PyQt5.QtCore import Qt
 
-class Setting(QDialog):
+class Personal_Settings(QDialog):
     '''个性化设置'''
     def __init__(self, main=None):
         super().__init__()
@@ -67,10 +67,10 @@ class Setting(QDialog):
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '预设参数', self.combo_box.currentText()+'.qss'),'r',encoding='utf-8') as f:
                 self.main.theme = f.read()
             self.main.data['style'] = self.combo_box.currentText()
-        if self.main.data['interval'] != self.main.animation.interval: # 设置图片切换速度
+        if self.main.data['interval'] != self.interval_spin.value(): # 设置图片切换速度
             self.main.animation.interval = self.interval_spin.value()
             self.main.data['interval'] = self.main.animation.interval
-        if self.main.data['dv'] != self.main.dv: # 设置移动速度
+        if self.main.data['dv'] != self.speed_spin.value(): # 设置移动速度
             self.main.dv = self.speed_spin.value()
             self.main.data['dv'] = self.main.dv
         if self.alarm_checkbox.isChecked(): # 设置语音提醒时间
@@ -80,8 +80,8 @@ class Setting(QDialog):
         self.accept()
 
 
-class SettingsDialog(QDialog):
-    '''参数设置对话框'''
+class Model_Settings(QDialog):
+    '''模型参数设置对话框'''
     def __init__(self, main=None):
         super().__init__(main)
         self.main = main

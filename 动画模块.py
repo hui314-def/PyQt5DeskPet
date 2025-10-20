@@ -7,7 +7,7 @@ class Animation:
         self.main_window = main_window
         self.w = self.main_window.width() - 100 # 防止窗口装不下图片
         self.h = self.main_window.height() - 100
-        image_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "images")
+        image_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "图片")
         # 加载动画图片组
         self.animations = {
             'walk':    [os.path.join(image_folder, '走路', f'{n}.png')  for n in range(1, len(os.listdir(os.path.join(image_folder, '走路')))+1)],

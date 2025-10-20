@@ -11,7 +11,7 @@ class TTSWorker(QThread):
         self.num = num
 
     def run(self):
-        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sound', '历史音频合成', f"chat_{self.num}.mp3")
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '声音', '历史音频合成', f"chat_{self.num}.mp3")
         asyncio.run(self.amain(self.text, file_path))
         self.finished.emit(file_path)
 
@@ -22,7 +22,7 @@ class TTSWorker(QThread):
 class Sound:
     def __init__(self):
         self.abspath = os.path.dirname(os.path.abspath(__file__))
-        os.makedirs(os.path.join(self.abspath, 'sound','历史音频合成'), exist_ok=True)
+        os.makedirs(os.path.join(self.abspath, '声音','历史音频合成'), exist_ok=True)
         self.player = QMediaPlayer() # 音乐实例化
         self.num = 0
         self.tts_worker = None
@@ -33,7 +33,7 @@ class Sound:
         '''文件夹内随机语音播放'''
         if self.is_off:
             return
-        path = os.path.join(self.abspath, "sound", dir) # 调用语音文件夹
+        path = os.path.join(self.abspath, "声音", dir) # 调用语音文件夹
         try:
             choices = os.listdir(path)
             n = random.randint(0, len(choices) - 1)
@@ -45,10 +45,10 @@ class Sound:
             print('文件不存在！语音播放失败')
 
     def say(self,filename):
-        '''sound文件夹内指定语音播放'''
+        '''声音文件夹内指定语音播放'''
         if self.is_off:
             return
-        file_path = os.path.join(self.abspath, "sound", filename)
+        file_path = os.path.join(self.abspath, "声音", filename)
         try:
             url = QUrl.fromLocalFile(file_path)
             self.player.setMedia(QMediaContent(url))
@@ -58,7 +58,7 @@ class Sound:
 
     def rand_music(self):
         '''播放随机音乐'''
-        music_dir = os.path.join(self.abspath, "sound", "音乐")
+        music_dir = os.path.join(self.abspath, "声音", "音乐")
         try:
             choices = os.listdir(music_dir)
             n = random.randint(0, len(choices) - 1)

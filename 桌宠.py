@@ -8,7 +8,7 @@ from 动画模块 import Animation
 from 音频模块 import Sound
 from 定时模块 import Timer
 from 聊天模块 import ModelApi
-from 设置模块 import Setting
+from 设置模块 import Personal_Settings
 
 def memory_usage():
     """返回当前进程内存使用量(MB)"""
@@ -36,7 +36,7 @@ class MyQtDeskPet(QWidget):
         self.sound = Sound() # 实例化音频类
         self.sound.say('随机声音/你好.mp3') # 初始语音播放
         self.timer = Timer(self) # 实例化定时器类
-        self.dialog = Setting(self) # 实例化设置类
+        self.dialog = Personal_Settings(self) # 实例化设置类
         
     def ui_init(self):
         '''界面初始化'''
@@ -50,7 +50,7 @@ class MyQtDeskPet(QWidget):
         layout = QVBoxLayout() # 布局器
         layout.addWidget(self.label)
         self.setLayout(layout)
-        tray_icon = QSystemTrayIcon(QIcon(os.path.join(self.abspath, "images", "图标", "icon.png")), self) # 托盘图标设置
+        tray_icon = QSystemTrayIcon(QIcon(os.path.join(self.abspath, "图片", "图标", "icon.png")), self) # 托盘图标设置
         self.tray = QMenu() # 托盘菜单
         self.tray.setStyleSheet(self.theme) # 设置托盘菜单栏样式
         show_action = self.tray.addAction("显示桌宠")
@@ -64,7 +64,7 @@ class MyQtDeskPet(QWidget):
 
     def enterEvent(self,a0):
         '''自定义鼠标光标'''
-        pixmap = QPixmap(os.path.join(self.abspath, "images", "hand.png")).scaled(64, 48) # 加载图像文件
+        pixmap = QPixmap(os.path.join(self.abspath, "图片", "hand.png")).scaled(64, 48) # 加载图像文件
         self.setCursor(QCursor(pixmap))
   
     def move_window(self):
@@ -93,13 +93,11 @@ class MyQtDeskPet(QWidget):
         dy = mouse_pos.y() - center_y
 
         distance = (dx ** 2 + dy ** 2) ** 0.5
-        if distance < 5:
+        if distance < self.dv/2:
+            self.sound.rand_say('跟随鼠标')
             self.animation.stop_all_animation()
             self.animation.action4.start(self.animation.interval)
             return  # 已经很接近鼠标，不再移动
-        # min_val = self.dv - 10
-        # max_val = self.dv + 10
-        # rand_speed = random.randint(min_val, max_val)
         speed = abs(self.dv)
         move_x = int(center_x + speed * dx / distance)
         move_y = int(center_y + speed * dy / distance)
@@ -181,7 +179,7 @@ class MyQtDeskPet(QWidget):
 
     def contextMenuEvent(self, a0):
         '''菜单界面设置'''
-        dir = os.path.join(self.abspath, "images", "图标") # 菜单图标文件夹
+        dir = os.path.join(self.abspath, "图片", "图标") # 菜单图标文件夹
         if self.timer.sleeping: # 睡觉状态下只显示唤醒、隐藏和退出选项
             menu = QMenu(self)
             menu.setStyleSheet(self.theme) # 设置菜单栏样式
@@ -281,7 +279,7 @@ class MyQtDeskPet(QWidget):
             if action == action_chat:
                 self.chat()
             if action == action_save:
-                os.startfile(os.path.join(self.abspath, "uploads"))
+                os.startfile(os.path.join(self.abspath, "文件保存位置"))
             if action == action_music:
                 self.sound.rand_music()
             if action == action_about:
@@ -431,7 +429,7 @@ class MyQtDeskPet(QWidget):
         if a0.mimeData().hasUrls():#获取文件地址并复制文件
             files = [url.toLocalFile() for url in a0.mimeData().urls()]  # 获取所有文件路径
             for file_path in files:
-                target_dir = os.path.join(self.abspath, "uploads")
+                target_dir = os.path.join(self.abspath, "文件保存地址")
                 os.makedirs(target_dir, exist_ok=True)
                 filename = os.path.basename(file_path)
                 target_path = os.path.join(target_dir, filename)
@@ -444,7 +442,7 @@ class MyQtDeskPet(QWidget):
 
         elif a0.mimeData().hasText():#获取文本内容并保存为文件
             text = a0.mimeData().text()
-            target_dir = os.path.join(self.abspath, "uploads")
+            target_dir = os.path.join(self.abspath, "文件保存地址")
             os.makedirs(target_dir, exist_ok=True)
             filename = f"text_{int(time.time())}.txt"
             target_path = os.path.join(target_dir, filename)

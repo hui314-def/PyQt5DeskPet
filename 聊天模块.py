@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit, QPushButton, QMessa
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QIcon
 from 音频模块 import Sound
-from 设置模块 import SettingsDialog
+from 设置模块 import Model_Settings
 
 class ChatWorker(QThread): # 聊天工作线程
     finished = pyqtSignal(str) # 用于传递回复的文本
@@ -68,12 +68,12 @@ class ModelApi(QWidget):
         self.worker = None # 初始ChatWorker对象
         # self.init_chatworker = ChatWorker(self.data)
         # self.init_chatworker.start() # 打开对话框时预加载模型减少初次等待时间
-        self.dialog = SettingsDialog(self) # 参数设置对话框实例化
+        self.dialog = Model_Settings(self) # 参数设置对话框实例化
 
     def ui_init(self):
         self.setWindowTitle('聊天输入框')
         self.setFixedSize(600, 80) # 禁用窗口大小更改
-        self.setWindowIcon(QIcon(os.path.join(self.abspath, "images", "图标", "icon.png")))
+        self.setWindowIcon(QIcon(os.path.join(self.abspath, "图片", "图标", "icon.png")))
         layout = QHBoxLayout()
         self.input = QLineEdit()
         self.input.setPlaceholderText("请输入文本...")

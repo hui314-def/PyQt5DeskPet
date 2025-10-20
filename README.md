@@ -20,7 +20,6 @@
 
 ### 聊天功能额外库：
 - `edge_tts`
-- `asyncio`
 - `emoji`
 - `requests`
 
