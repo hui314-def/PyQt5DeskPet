@@ -1,0 +1,44 @@
+/* 绿色主题 - 托盘菜单 */
+QMenu {
+    background-color: #f0f9eb;
+    border: 4px solid #52c41a;
+    font-size: 20px;
+}
+QMenu::item {
+    padding: 6px 30px 6px 30px;
+    background: transparent;
+}
+QMenu::item:selected {
+    background-color: #d9f7be;
+    color: #389e0d;
+}
+
+/* 绿色主题 - 聊天输入框 */
+QWidget {
+    background-color: #f6ffed;
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    font-size: 20px;
+}
+QLineEdit {
+    border: 2px solid #52c41a;
+    border-radius: 8px;
+    padding: 6px;
+    background: #ffffff;
+    color: #333;
+}
+QPushButton {
+    background-color: #52c41a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #3da814;
+}
+QPushButton:disabled {
+    background-color: #b7eb8f;
+    color: #f6ffed;
+}
+
