@@ -1,4 +1,4 @@
-import sys, time, subprocess, GPUtil, os, psutil, gc, tracemalloc, json
+import sys, time, subprocess, GPUtil, os, psutil, gc, tracemalloc, json, random
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QMenu, QSystemTrayIcon
 from PyQt5.QtCore import Qt, QEvent, QTimer
 from PyQt5.QtGui import QCursor, QPixmap, QIcon
@@ -54,13 +54,20 @@ class MyQtDeskPet(QWidget):
         self.tray = QMenu() # 托盘菜单
         self.tray.setStyleSheet(self.theme) # 设置托盘菜单栏样式
         show_action = self.tray.addAction("显示桌宠")
+        middle_action = self.tray.addAction("居中显示") # 防止桌宠被移动到窗口边界找不到
         set_action = self.tray.addAction("个性化设置")
         quit_action = self.tray.addAction("退出程序")
         show_action.triggered.connect(self.show) # 连接信号和槽
         set_action.triggered.connect(self.open_setting)
         quit_action.triggered.connect(self.exit)
+        middle_action.triggered.connect(self.middle)
         tray_icon.setContextMenu(self.tray) # 设置托盘图标的上下文菜单
         tray_icon.show() # 显示托盘图标
+
+    def middle(self):
+        '''在屏幕正中间显示桌宠'''
+        screen = QApplication.desktop().availableGeometry(self)
+        self.move(int(screen.right()/2-self.width()/2), int(screen.bottom()/2-self.height()/2))
 
     def enterEvent(self,a0):
         '''自定义鼠标光标'''
@@ -310,7 +317,8 @@ class MyQtDeskPet(QWidget):
                 return
             self.move(a0.globalX() - self.dx,a0.globalY() - self.dy)
             if self.dragging == True: # 一次移动导致事件重复触发时用于只执行一次该代码
-                self.sound.rand_say('拖动')
+                if random.randint(0,2) == 1:
+                    self.sound.rand_say('拖动')
                 self.animation.stop_all_animation()
                 self.animation.drag.start(self.animation.interval)
                 self.dragging = False
@@ -351,17 +359,22 @@ class MyQtDeskPet(QWidget):
                 # 待开发……
                 return # 是长按事件，直接返回，不执行之后移动的指令
             self.animation.stop_all_animation()
-            self.animation.action1.start(self.animation.interval)# 恢复初始动作
+            self.animation.action1.start(self.animation.interval) # 恢复初始动作
             self.is_move = False
-            if self.x() < -80: # 如果拖动到左侧边界就切换图片
+            if self.x() < int(-self.width()/5): # 如果拖动到左侧边界就切换图片
                 self.animation.stop_all_animation()
                 self.move(int(-self.width()/4), self.y())
                 self.animation.show_img('hide')
                 self.hiding = True
-            elif self.x() > QApplication.desktop().availableGeometry(self).right()-self.width()+80:
+            elif self.x() > QApplication.desktop().availableGeometry(self).right()-self.width()+int(self.width()/5): # 右侧边界
                 self.animation.stop_all_animation()
                 self.move(QApplication.desktop().availableGeometry(self).right()-self.width()+int(self.width()/4), self.y())
-                self.animation.show_img('hide',change=True) # 镜像翻转图片
+                self.animation.show_img('hide', change=True) # 镜像翻转图片
+                self.hiding = True
+            elif self.y() < int(-self.height()/5): # 如果拖动到上边界就切换图片
+                self.animation.stop_all_animation()
+                self.move(self.x(), int(-self.height()/2.7))
+                self.animation.show_img('hide2')
                 self.hiding = True
             elif self.hiding == True: # 如果之前是躲藏状态，松开鼠标就恢复
                 self.animation.action2.start(self.animation.interval)
@@ -419,15 +432,15 @@ class MyQtDeskPet(QWidget):
 
     def dragEnterEvent(self, a0):
         '''重写拖入文件事件'''
-        if a0.mimeData().hasUrls() or a0.mimeData().hasText():  # 检查拖入的是否为文件/URL
-            a0.acceptProposedAction()  # 接受拖放操作
+        if a0.mimeData().hasUrls() or a0.mimeData().hasText(): # 检查拖入的是否为文件/URL
+            a0.acceptProposedAction() # 接受拖放操作
         else:
-            a0.ignore()  # 忽略非文件拖放
+            a0.ignore() # 忽略非文件拖放
     
     def dropEvent(self, a0):
         '''放下文件进行上传'''
-        if a0.mimeData().hasUrls():#获取文件地址并复制文件
-            files = [url.toLocalFile() for url in a0.mimeData().urls()]  # 获取所有文件路径
+        if a0.mimeData().hasUrls(): # 获取文件地址并复制文件
+            files = [url.toLocalFile() for url in a0.mimeData().urls()] # 获取所有文件路径
             for file_path in files:
                 target_dir = os.path.join(self.abspath, "文件保存地址")
                 os.makedirs(target_dir, exist_ok=True)
@@ -435,12 +448,12 @@ class MyQtDeskPet(QWidget):
                 target_path = os.path.join(target_dir, filename)
                 try:
                     with open(file_path, "rb") as src, open(target_path, "wb") as dst:
-                        dst.write(src.read())# 执行上传操作
+                        dst.write(src.read()) # 执行上传操作
                     self.sound.rand_say('文件上传')
                 except:
                     pass
 
-        elif a0.mimeData().hasText():#获取文本内容并保存为文件
+        elif a0.mimeData().hasText(): # 获取文本内容并保存为文件
             text = a0.mimeData().text()
             target_dir = os.path.join(self.abspath, "文件保存地址")
             os.makedirs(target_dir, exist_ok=True)
@@ -448,7 +461,7 @@ class MyQtDeskPet(QWidget):
             target_path = os.path.join(target_dir, filename)
             try:
                 with open(target_path, "w", encoding="utf-8") as f:
-                    f.write(text)# 保存文本内容
+                    f.write(text) # 保存文本内容
                 self.sound.rand_say('文件上传')
             except:
                 pass
@@ -469,7 +482,7 @@ class MyQtDeskPet(QWidget):
         upload_speed = (net2.bytes_sent - net1.bytes_sent) / 1024
         download_speed = (net2.bytes_recv - net1.bytes_recv) / 1024
         self.bubble(f'CPU利用率: {cpu_usage}%\n内存占用: {mem_usage}%\nGPU: {gpu_usage:.1f}%  温度：{gpu_temper}℃\n上行: {upload_speed:.1f}KB/s\n下行: {download_speed:.1f}KB/s')
-        if type(gpu_temper) is float and gpu_temper>90:
+        if type(gpu_temper) is float and gpu_temper > 90:
             self.sound.say('高温.mp3')
         elif cpu_usage > 70:
             self.sound.say('cpu利用率高.mp3')

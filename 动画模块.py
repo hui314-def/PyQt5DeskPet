@@ -19,16 +19,15 @@ class Animation:
             'drag':    [os.path.join(image_folder, '拖动', f'{n}.png')  for n in range(1, len(os.listdir(os.path.join(image_folder, '拖动')))+1)],
             'follow':  [os.path.join(image_folder, '爬动', f'{n}.png')  for n in range(1, len(os.listdir(os.path.join(image_folder, '爬动')))+1)],
         }
-        # 加载静态图片
         self.pictures = {
             'hide':    os.path.join(image_folder, '躲藏.png'),
             'goodbye': os.path.join(image_folder, '再见.png'),
             'sleep':   os.path.join(image_folder, '睡觉.png'),
-        }
-        # 动画索引映射
+            'hide2':   os.path.join(image_folder, '探头.png'),
+        } # 加载静态图片
         self.animation_indexs = {
             'walk': 0, 'action1': 0, 'action2': 0, 'action3': 0, 'action4': 0, 'action5': 0, 'drag': 0, 'follow': 0,
-        }
+        } # 动画索引映射
         self.animation_timers = {} # 动画到定时器的映射
         self.interval = interval # 初始动画图片间隔时长(ms)
         self.init_timers() # 初始化定时器
