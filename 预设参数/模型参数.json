@@ -4,6 +4,6 @@
         "deepseek-r1:1.5b",
         "gemma2:latest"
     ],
-    "temperature": 1,
+    "temperature": 1.0,
     "top_p": 0.7
 }

@@ -442,7 +442,7 @@ class MyQtDeskPet(QWidget):
         if a0.mimeData().hasUrls(): # 获取文件地址并复制文件
             files = [url.toLocalFile() for url in a0.mimeData().urls()] # 获取所有文件路径
             for file_path in files:
-                target_dir = os.path.join(self.abspath, "文件保存地址")
+                target_dir = os.path.join(self.abspath, "文件保存位置")
                 os.makedirs(target_dir, exist_ok=True)
                 filename = os.path.basename(file_path)
                 target_path = os.path.join(target_dir, filename)
@@ -455,7 +455,7 @@ class MyQtDeskPet(QWidget):
 
         elif a0.mimeData().hasText(): # 获取文本内容并保存为文件
             text = a0.mimeData().text()
-            target_dir = os.path.join(self.abspath, "文件保存地址")
+            target_dir = os.path.join(self.abspath, "文件保存位置")
             os.makedirs(target_dir, exist_ok=True)
             filename = f"text_{int(time.time())}.txt"
             target_path = os.path.join(target_dir, filename)
