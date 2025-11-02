@@ -22,7 +22,11 @@ class Personal_Settings(QDialog):
         layout.addRow("窗口大小：", self.size_spin)
         # 窗口主题切换
         self.combo_box = QComboBox()
-        self.combo_box.addItems(['橙色','绿色','蓝色'])
+        l = []
+        for i in os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '预设参数')):
+            if i.endswith('.qss'):
+                l.append(i.split('.')[0])
+        self.combo_box.addItems(l)
         self.combo_box.setCurrentText(self.main.data['style'])
         layout.addRow("主题颜色切换：", self.combo_box)
         # 图片切换速度设置

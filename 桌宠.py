@@ -133,6 +133,7 @@ class MyQtDeskPet(QWidget):
             '橙色': ('rgba(255,250,230,200)', 'rgba(255,240,200,200)', '#FFA500'),
             '绿色': ('rgba(230,255,240,200)', 'rgba(200,255,220,200)', '#28A745'),
             '蓝色': ('rgba(232,244,255,200)', 'rgba(220,235,255,200)', '#007BFF'),
+            '粉色': ('rgba(255,230,240,200)', 'rgba(255,200,220,200)', '#FF69B4'),
         }
         bg_start, bg_end, border_color = theme_map[self.data['style']]
         reminder_bubble.setStyleSheet(f"""
@@ -214,9 +215,11 @@ class MyQtDeskPet(QWidget):
             action4 = action_menu.addAction("动作 4")
             action5 = action_menu.addAction("动作 5")
             action_follow = action_menu.addAction("跟随鼠标")
+            action_follow.setIcon(QIcon(os.path.join(dir, "鼠标.png")))
             action_move = action_menu.addAction("移动")
             action_move.setIcon(QIcon(os.path.join(dir, "走动.png")))
             action_stop = action_menu.addAction("暂停")
+            action_stop.setIcon(QIcon(os.path.join(dir, "暂停.png")))
             action_sleep = action_menu.addAction("睡觉")
             action_sleep.setIcon(QIcon(os.path.join(dir, "zzz.png")))
 
@@ -442,6 +445,20 @@ class MyQtDeskPet(QWidget):
         if a0.mimeData().hasUrls(): # 获取文件地址并复制文件
             files = [url.toLocalFile() for url in a0.mimeData().urls()] # 获取所有文件路径
             for file_path in files:
+                if file_path.split('.')[-1] == 'py': # 如果上传的是python代码则直接执行
+                    try:
+                        cmd_command = f'start cmd /k python "{file_path}"' # 构建命令
+                        process = subprocess.Popen(
+                            cmd_command,
+                            shell=True,
+                            creationflags=subprocess.CREATE_NEW_CONSOLE
+                        ) # 启动新cmd窗口，使用子进程执行
+                        print(f"已在新的 cmd 窗口中启动，进程 PID: {process.pid}")
+                        self.sound.say('执行.mp3')
+                    except Exception as e:
+                        print(f"执行错误: {e}")
+                    finally:
+                        return # 不执行保存文件操作
                 target_dir = os.path.join(self.abspath, "文件保存位置")
                 os.makedirs(target_dir, exist_ok=True)
                 filename = os.path.basename(file_path)
@@ -451,7 +468,7 @@ class MyQtDeskPet(QWidget):
                         dst.write(src.read()) # 执行上传操作
                     self.sound.rand_say('文件上传')
                 except:
-                    pass
+                    print('文件上传失败')
 
         elif a0.mimeData().hasText(): # 获取文本内容并保存为文件
             text = a0.mimeData().text()

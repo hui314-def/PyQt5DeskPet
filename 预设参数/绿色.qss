@@ -2,15 +2,17 @@
 QMenu {
     background-color: #f0f9eb;
     border: 4px solid #52c41a;
+    border-radius: 12px;
     font-size: 20px;
 }
 QMenu::item {
-    padding: 6px 30px 6px 30px;
+    padding: 6px 30px 6px 10px;
     background: transparent;
 }
 QMenu::item:selected {
     background-color: #d9f7be;
     color: #389e0d;
+    border-radius: 12px;
 }
 
 /* 绿色主题 - 聊天输入框 */

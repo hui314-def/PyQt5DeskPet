@@ -1,7 +1,7 @@
-/* 蓝色主题 - 托盘菜单 */
+/* 粉色主题 - 托盘菜单 */
 QMenu {
-    background-color: #e6f3ff;
-    border: 4px solid #4a90e2;
+    background-color: #fff0f5;
+    border: 4px solid #ff69b4;
     border-radius: 12px;
     font-size: 20px;
 }
@@ -10,26 +10,26 @@ QMenu::item {
     background: transparent;
 }
 QMenu::item:selected {
-    background-color: #c2e0ff;
-    color: #1a5fb4;
+    background-color: #ffd1dc;
+    color: #c2185b;
     border-radius: 12px;
 }
 
-/* 蓝色主题 - 聊天输入框 */
+/* 粉色主题 - 聊天输入框 */
 QWidget {
-    background-color: #f0f8ff;
+    background-color: #fff0f5;
     font-family: 'Microsoft YaHei', Arial, sans-serif;
     font-size: 20px;
 }
 QLineEdit {
-    border: 2px solid #4a90e2;
+    border: 2px solid #ff69b4;
     border-radius: 8px;
     padding: 6px;
-    background: #ffffff;
+    background: #fff9fb;
     color: #333;
 }
 QPushButton {
-    background-color: #4a90e2;
+    background-color: #ff69b4;
     color: white;
     border: none;
     border-radius: 8px;
@@ -37,10 +37,9 @@ QPushButton {
     font-weight: bold;
 }
 QPushButton:hover {
-    background-color: #357abd;
+    background-color: #ff1493;
 }
 QPushButton:disabled {
-    background-color: #a8c6e5;
-    color: #e6f0fa;
+    background-color: #ffb6c1;
+    color: #fff9fb;
 }
-
