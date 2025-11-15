@@ -1,8 +1,7 @@
 import sys, time, subprocess, GPUtil, os, psutil, gc, tracemalloc, json, random
-from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QMenu, QSystemTrayIcon
+from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QMenu, QSystemTrayIcon, QMessageBox
 from PyQt5.QtCore import Qt, QEvent, QTimer
 from PyQt5.QtGui import QCursor, QPixmap, QIcon
-from PyQt5.QtWidgets import QLabel
 # 自定义包导入
 from 动画模块 import Animation
 from 音频模块 import Sound
@@ -25,10 +24,19 @@ class MyQtDeskPet(QWidget):
         self.walk_change = False # 走路图像翻转
         self.follow_change = False # 爬动图像翻转
         self.is_move = False # 是否移动
-        with open(os.path.join(self.abspath, '预设参数', '桌宠参数.json'), 'r', encoding='utf-8') as f:
-            self.data = json.load(f)
-        with open(os.path.join(self.abspath, '预设参数', self.data['style']+'.qss'),'r',encoding='utf-8') as f:
-            self.theme = f.read()
+        try:
+            with open(os.path.join(self.abspath, '预设参数', '桌宠参数.json'), 'r', encoding='utf-8') as f:
+                self.data = json.load(f) # 读取桌宠参数
+            with open(os.path.join(self.abspath, '预设参数', '主题颜色', self.data['style']+'.qss'), 'r', encoding='utf-8') as f:
+                self.theme = f.read() # 读取主题样式
+        except:
+            print('参数文件读取失败，加载默认参数')
+            self.data = {
+                "interval": 150,
+                "dv": 10,
+                "size": 4,
+                "style": "橙色"
+            }
         self.dv = self.data['dv'] # 初始化移动速度
         self.click_times = 0 # 点击次数
         self.ui_init() # 界面初始化
@@ -41,7 +49,7 @@ class MyQtDeskPet(QWidget):
     def ui_init(self):
         '''界面初始化'''
         self.label = QLabel(self) # 初始化图片容器
-        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setAlignment(Qt.AlignCenter) # 居中显示
         self.setFixedSize(self.data['size']*100, int(self.data['size']*400/3)) # 设置初始大小（比例为3：4）
         self.setAttribute(Qt.WA_TranslucentBackground) # 窗口透明指令（需要和隐藏标题栏一起使用，否则窗口背景为黑色）
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint) # 标题栏隐藏和窗口置顶指令
@@ -50,6 +58,8 @@ class MyQtDeskPet(QWidget):
         layout = QVBoxLayout() # 布局器
         layout.addWidget(self.label)
         self.setLayout(layout)
+
+        # 托盘设置
         tray_icon = QSystemTrayIcon(QIcon(os.path.join(self.abspath, "图片", "图标", "icon.png")), self) # 托盘图标设置
         self.tray = QMenu() # 托盘菜单
         self.tray.setStyleSheet(self.theme) # 设置托盘菜单栏样式
@@ -186,7 +196,7 @@ class MyQtDeskPet(QWidget):
         QTimer.singleShot(len(content)*300, fade_out)
 
     def contextMenuEvent(self, a0):
-        '''菜单界面设置'''
+        '''右键显示菜单界面设置'''
         dir = os.path.join(self.abspath, "图片", "图标") # 菜单图标文件夹
         if self.timer.sleeping: # 睡觉状态下只显示唤醒、隐藏和退出选项
             menu = QMenu(self)
@@ -201,7 +211,9 @@ class MyQtDeskPet(QWidget):
             if action == action_wake:
                 self.wake_up()
             if action == action_exit:
-                self.exit()
+                self.animation.show_img('goodbye')
+                self.sound.say('再见.mp3')
+                QTimer.singleShot(3400, self.exit) # 等待语音播放完成后退出
             if action == action_hide:
                 self.hide()
         else:
@@ -358,8 +370,8 @@ class MyQtDeskPet(QWidget):
                         self.click_times += 1 # 增加点击次数
                 self.timer.click_timer.start(10000) # 重置定时器
                 return # 是点击事件，直接返回，不执行之后移动的指令
-            elif not self.is_move: # 长按事件
-                # 待开发……
+            elif elapsed > 1 and not self.is_move: # 长按1秒的事件
+                self.sound.rand_say('长按语音')
                 return # 是长按事件，直接返回，不执行之后移动的指令
             self.animation.stop_all_animation()
             self.animation.action1.start(self.animation.interval) # 恢复初始动作
@@ -481,7 +493,7 @@ class MyQtDeskPet(QWidget):
                     f.write(text) # 保存文本内容
                 self.sound.rand_say('文件上传')
             except:
-                pass
+                print('文件上传失败')
 
     def open_setting(self):
         '''打开个性化设置'''
@@ -512,8 +524,8 @@ class MyQtDeskPet(QWidget):
 
     def exit(self):
         '''退出程序'''
-        with open(os.path.join(self.abspath, '预设参数', '桌宠参数.json'),'w',encoding='utf-8') as f:
-            json.dump(self.data, f, indent=4, ensure_ascii=False)
+        with open(os.path.join(self.abspath, '预设参数', '桌宠参数.json'), 'w', encoding='utf-8') as f:
+            json.dump(self.data, f, indent=4, ensure_ascii=False) # 保存参数文件为json
         QApplication.quit()
 
     def on_chat_window_closed(self):

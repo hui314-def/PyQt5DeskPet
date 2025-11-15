@@ -23,8 +23,8 @@ class Personal_Settings(QDialog):
         # 窗口主题切换
         self.combo_box = QComboBox()
         l = []
-        for i in os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '预设参数')):
-            if i.endswith('.qss'):
+        for i in os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '预设参数', '主题颜色')):
+            if i.endswith('.qss'): # 读取主题颜色
                 l.append(i.split('.')[0])
         self.combo_box.addItems(l)
         self.combo_box.setCurrentText(self.main.data['style'])
@@ -68,7 +68,7 @@ class Personal_Settings(QDialog):
             self.main.animation.h = self.main.height()-100
             self.main.data['size'] = self.size_spin.value()
         if self.main.data['style'] != self.combo_box.currentText(): # 设置窗口主题切换
-            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '预设参数', self.combo_box.currentText()+'.qss'),'r',encoding='utf-8') as f:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '预设参数', '主题颜色', self.combo_box.currentText() + '.qss'), 'r', encoding='utf-8') as f:
                 self.main.theme = f.read()
             self.main.data['style'] = self.combo_box.currentText()
         if self.main.data['interval'] != self.interval_spin.value(): # 设置图片切换速度
@@ -97,7 +97,8 @@ class Model_Settings(QDialog):
     def setup_ui(self):
         layout = QFormLayout()
         self.model_combo = QComboBox() # 模型选择
-        self.model_combo.addItems(self.main.model['model_list'])# 默认模型选项
+        self.model_list = self.main.model['model_list']
+        self.model_combo.addItems(self.model_list) # 默认模型选项
         self.model_combo.setCurrentText(self.main.data["model"])
         layout.addRow("模型:", self.model_combo)
         self.edit_models_btn = QPushButton("编辑模型选项")
@@ -105,8 +106,8 @@ class Model_Settings(QDialog):
             text, ok = QInputDialog.getText(self, "编辑模型选项", "用逗号分隔模型名：", text=",".join([self.model_combo.itemText(i) for i in range(self.model_combo.count())]))
             if ok:
                 self.model_combo.clear()
-                models = [m.strip() for m in text.split(",") if m.strip()]
-                self.model_combo.addItems(models)
+                self.model_list = [m.strip() for m in text.split(",") if m.strip()]
+                self.model_combo.addItems(self.model_list)
         self.edit_models_btn.clicked.connect(edit_models)
         layout.addRow(self.edit_models_btn)
         # 温度设置滑块
@@ -149,19 +150,18 @@ class Model_Settings(QDialog):
 
     def accept(self):
         '''保存设置'''
-        self.main.data["model"] = self.model_combo.currentText()
-        self.main.data["temperature"] = self.temp_slider.value()/100
-        self.main.data["top_p"] = self.top_p_slider.value()/100
-        self.main.model["use_model"] = self.model_combo.currentText()
-        self.main.model["temperature"] = self.temp_slider.value()/100
-        self.main.model["top_p"] = self.top_p_slider.value()/100
-        if self.save_button.isChecked():
-            self.main.is_save = True
-        else:
-            self.main.is_save = False
-        if self.tts_button.isChecked():
-            self.main.use_tts = True
-        else:
-            self.main.use_tts = False
+        if self.main.data["model"] != self.model_combo.currentText():
+            self.main.data["model"] = self.model_combo.currentText()
+            self.main.model["use_model"] = self.model_combo.currentText()
+        if self.main.data["temperature"] != self.temp_slider.value()/100:
+            self.main.data["temperature"] = self.temp_slider.value()/100
+            self.main.model["temperature"] = self.temp_slider.value()/100
+        if self.main.data["top_p"] != self.top_p_slider.value()/100:
+            self.main.data["top_p"] = self.top_p_slider.value()/100
+            self.main.model["top_p"] = self.top_p_slider.value()/100
+        if self.main.model['model_list'] != self.model_list:
+            self.main.model['model_list'] = self.model_list
+        self.main.is_save = self.save_button.isChecked()
+        self.main.use_tts = self.tts_button.isChecked()
         super().accept()
      

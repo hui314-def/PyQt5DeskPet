@@ -85,7 +85,7 @@ class ModelApi(QWidget):
         self.set.clicked.connect(self.open_setting)
         layout.addWidget(self.set)
         self.setLayout(layout)
-        # 设置橙色主题样式
+        # 设置主题样式
         self.setStyleSheet(self.main.theme)
 
     def keyPressEvent(self, a0):
@@ -141,14 +141,10 @@ class ModelApi(QWidget):
     def closeEvent(self, a0):
         if self.is_save:
             self.save()
-        if self.main:
-            self.main.t = None  # 重置标志位
+        self.main.t = None  # 重置标志位
         self.data["messages"] = [self.data["messages"].pop(0)] # 重置历史对话
         # 保存最新参数配置文件
-        with open(os.path.join(self.abspath, '预设参数', '模型参数.json'),'w', encoding='utf-8') as f:
+        with open(os.path.join(self.abspath, '预设参数', '模型参数.json'), 'w', encoding='utf-8') as f:
             json.dump(self.model, f, indent=4, ensure_ascii=False)
-        # 接受关闭事件
-        a0.accept()
-        # 通知主程序释放资源
-        if self.main:
-            self.main.on_chat_window_closed()
+        a0.accept() # 接受关闭事件
+        self.main.on_chat_window_closed() # 通知主程序释放资源
